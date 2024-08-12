@@ -3,6 +3,6 @@ fn main() {
         .cpp(true)
         .std("c++17")
         .include("../include")
-        .file("test.cxx")
-        .compile("test");
+        .file("../src/rust_time.cxx")
+        .compile("rust_time");
 }
