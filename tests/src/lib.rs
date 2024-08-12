@@ -44,6 +44,12 @@ mod tests {
             );
             uninit.assume_init()
         };
+        unsafe {
+            let raw_t1: [u32; 4] = std::mem::transmute_copy(&t1);
+            let raw_t2: [u32; 4] = std::mem::transmute_copy(&t2);
+            let raw_diff: [u32; 4] = std::mem::transmute_copy(&diff);
+            eprintln!("{:?} = {:?} - {:?}", raw_diff, raw_t2, raw_t1);
+        }
         assert_eq!(diff, d);
     }
 }

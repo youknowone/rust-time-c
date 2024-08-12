@@ -35,21 +35,25 @@ struct Duration {
   Nanoseconds nanos;
 
 #if __cplusplus
-  Duration() = default;
-  Duration(uint64_t secs, Nanoseconds nanos) __NOEXCEPT {
+  static __CONSTEXPR Duration from_parts(uint64_t secs, Nanoseconds nanos) __NOEXCEPT {
     if (nanos < NANOS_PER_SEC) {
-      this->secs = secs;
-      this->nanos = nanos;
+      return {secs, nanos};
     } else {
-      this->secs = secs + nanos / NANOS_PER_SEC;
-      this->nanos = nanos % NANOS_PER_SEC;
+      return {secs + nanos / NANOS_PER_SEC, nanos % NANOS_PER_SEC};
     }
   }
-  static Duration from_nanos(uint64_t nanos) __NOEXCEPT {
+  static __CONSTEXPR Duration from_nanos(uint64_t nanos) __NOEXCEPT {
     const uint64_t NANOS_PER_SEC64 = NANOS_PER_SEC;
     const auto secs = nanos / NANOS_PER_SEC64;
     const auto subsec_nanos = (Nanoseconds)(nanos % NANOS_PER_SEC64);
-    return Duration(secs, subsec_nanos);
+    return Duration::from_parts(secs, subsec_nanos);
+  }
+  uint64_t __CONSTEXPR as_nanos64() const __NOEXCEPT {
+    __CONSTEXPR Duration MAXIMUM_DURATION = Duration::from_nanos(UINT64_MAX);
+    if (*this >= MAXIMUM_DURATION) {
+      return UINT64_MAX;
+    }
+    return secs * NANOS_PER_SEC + nanos;
   }
   Duration checked_sub(const Duration &rhs) const {
     if (this->secs < rhs.secs) {
@@ -73,24 +77,24 @@ struct Duration {
     assert(duration.nanos != NANOSECONDS_NONE); // "overflow when subtracting durations"
     return duration;
   }
-  bool operator==(const Duration &rhs) const __NOEXCEPT {
+  __CONSTEXPR bool operator==(const Duration &rhs) const __NOEXCEPT {
     return this->secs == rhs.secs && this->nanos == rhs.nanos;
   }
-  bool operator!=(const Duration &rhs) const __NOEXCEPT {
+  __CONSTEXPR bool operator!=(const Duration &rhs) const __NOEXCEPT {
     return !(*this == rhs);
   }
-  bool operator<(const Duration &rhs) const __NOEXCEPT {
+  __CONSTEXPR bool operator<(const Duration &rhs) const __NOEXCEPT {
     return this->secs < rhs.secs ||
            (this->secs == rhs.secs && this->nanos < rhs.nanos);
   }
-  bool operator<=(const Duration &rhs) const __NOEXCEPT {
+  __CONSTEXPR bool operator<=(const Duration &rhs) const __NOEXCEPT {
     return this->secs < rhs.secs ||
         (this->secs == rhs.secs && this->nanos <= rhs.nanos);
   }
-  bool operator>(const Duration &rhs) const __NOEXCEPT {
+  __CONSTEXPR bool operator>(const Duration &rhs) const __NOEXCEPT {
     return !(*this <= rhs);
   }
-  bool operator>=(const Duration &rhs) const __NOEXCEPT {
+  __CONSTEXPR bool operator>=(const Duration &rhs) const __NOEXCEPT {
     return !(*this < rhs);
   }
 #endif
@@ -122,7 +126,7 @@ extern struct _Static _rust_time_static;
 #endif
 
 #if defined(_WIN32)
-uint64_t _mul_div_u64(uint64_t value, uint64_t numer,
+inline uint64_t _mul_div_u64(uint64_t value, uint64_t numer,
                       uint64_t denom) __NOEXCEPT {
   const auto q = value / denom;
   const auto r = value % denom;
@@ -179,7 +183,7 @@ struct Instant {
                          const struct timespec &rhs) const __NOEXCEPT {
     const auto is_larger =
         lhs.tv_sec > rhs.tv_sec ||
-        (lhs.tv_sec == rhs.tv_sec && lhs.tv_nsec > rhs.tv_nsec);
+        (lhs.tv_sec == rhs.tv_sec && lhs.tv_nsec >= rhs.tv_nsec);
     if (is_larger) {
       uint64_t secs;
       Nanoseconds nsec;
@@ -218,7 +222,7 @@ struct Instant {
   Duration checked_sub_instant(const Instant &other) const __NOEXCEPT {
     const auto epsilon = _PerformanceCounterInstant::epsilon();
     if (other.t > this->t && other.t - this->t < epsilon) {
-      return {0, NANOSECONDS_NONE};
+      return {0, 0};
     } else {
       return this->t.checked_sub(other.t);
     }
