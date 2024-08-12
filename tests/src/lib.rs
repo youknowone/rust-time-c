@@ -2,12 +2,13 @@
 extern "C" {
     fn rust_time_init();
     fn rust_time_instant_now(instant: *mut u8);
+    fn rust_time_instant_duration_since(lhs: *const u8, rhs: *const u8, duration: *mut u8);
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::time::Instant;
+    use std::time::{Duration, Instant};
 
     #[test]
     fn now() {
@@ -24,5 +25,25 @@ mod tests {
 
         assert!(t1 <= t2);
         assert!(t2 <= t3);
+    }
+
+    #[test]
+    fn duration_since() {
+        unsafe {
+            rust_time_init();
+        }
+        let d = Duration::new(1, 250000);
+        let t1 = Instant::now();
+        let t2 = t1 + d;
+        let diff = unsafe {
+            let mut uninit = std::mem::MaybeUninit::<Duration>::uninit();
+            rust_time_instant_duration_since(
+                &t2 as *const _ as *const _,
+                &t1 as *const _ as *const _,
+                uninit.as_mut_ptr() as *mut _,
+            );
+            uninit.assume_init()
+        };
+        assert_eq!(diff, d);
     }
 }

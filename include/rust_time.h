@@ -1,11 +1,14 @@
 #pragma once
 
+#include <assert.h>
 #include <stdint.h>
 
 #if __cplusplus >= 201402L
 #define __NOEXCEPT noexcept
+#define __CONSTEXPR constexpr
 #else
 #define __NOEXCEPT
+#define __CONSTEXPR const
 #endif
 
 #if defined(__unix__) || defined(__APPLE__)
@@ -23,12 +26,14 @@ namespace time {
 
 typedef uint32_t Nanoseconds;
 
-const uint32_t NANOS_PER_SEC = 1000000000;
+__CONSTEXPR uint32_t NANOS_PER_SEC = 1000000000;
+__CONSTEXPR Nanoseconds NANOSECONDS_NONE = uint32_t(-1);
 
 /// std::time::Duration
 struct Duration {
   uint64_t secs;
   Nanoseconds nanos;
+
 #if __cplusplus
   Duration(uint64_t secs, Nanoseconds nanos) __NOEXCEPT {
     if (nanos < NANOS_PER_SEC) {
@@ -45,6 +50,48 @@ struct Duration {
     const auto subsec_nanos = (Nanoseconds)(nanos % NANOS_PER_SEC64);
     return Duration(secs, subsec_nanos);
   }
+  Duration checked_sub(const Duration &rhs) const {
+    if (this->secs < rhs.secs) {
+      return {0, NANOSECONDS_NONE};
+    }
+    auto secs_ = this->secs - rhs.secs;
+    Nanoseconds nanos_;
+    if (this->nanos >= rhs.nanos) {
+      nanos_ = this->nanos - rhs.nanos;
+    } else if (secs_ >= 1) {
+      secs_ -= 1;
+      nanos_ = this->nanos + NANOS_PER_SEC - rhs.nanos;
+    } else {
+      return {0, NANOSECONDS_NONE};
+    }
+    assert(nanos_ < NANOS_PER_SEC);
+    return {secs_, nanos_};
+  }
+  Duration operator-(const Duration &rhs) const __NOEXCEPT {
+    const auto duration = checked_sub(rhs);
+    assert(duration.nanos != NANOSECONDS_NONE); // "overflow when subtracting durations"
+    return duration;
+  }
+  bool operator==(const Duration &rhs) const __NOEXCEPT {
+    return this->secs == rhs.secs && this->nanos == rhs.nanos;
+  }
+  bool operator!=(const Duration &rhs) const __NOEXCEPT {
+    return !(*this == rhs);
+  }
+  bool operator<(const Duration &rhs) const __NOEXCEPT {
+    return this->secs < rhs.secs ||
+           (this->secs == rhs.secs && this->nanos < rhs.nanos);
+  }
+  bool operator<=(const Duration &rhs) const __NOEXCEPT {
+    return this->secs < rhs.secs ||
+        (this->secs == rhs.secs && this->nanos <= rhs.nanos);
+  }
+  bool operator>(const Duration &rhs) const __NOEXCEPT {
+    return !(*this <= rhs);
+  }
+  bool operator>=(const Duration &rhs) const __NOEXCEPT {
+    return !(*this < rhs);
+  }
 #endif
 };
 
@@ -54,22 +101,6 @@ inline struct timespec _timespec_now(clockid_t clock) __NOEXCEPT {
   struct timespec t;
   clock_gettime(clock, &t);
   return t;
-};
-
-/// std::time::Instant
-struct Instant {
-  struct timespec t;
-
-  static Instant now() __NOEXCEPT {
-    struct Instant instant;
-#if defined(__APPLE__)
-    clockid_t clock_id = CLOCK_UPTIME_RAW;
-#else
-    clockid_t clock_id = CLOCK_MONOTONIC;
-#endif
-    clock_gettime(clock_id, &instant.t);
-    return instant;
-  }
 };
 
 struct _Static {};
@@ -117,10 +148,58 @@ struct _PerformanceCounterInstant {
     instant.ts = _perf_counter_query();
     return instant;
   }
+  static int64_t frequency() __NOEXCEPT {
+    return _rust_time_static.perf_counter_frequency;
+  }
+  static Duration epsilon() __NOEXCEPT {
+    const auto epsilon = NANOS_PER_SEC / (uint64_t)frequency();
+    return Duration::from_nanos(epsilon);
+  }
 };
+#endif
 
 /// std::time::Instant
 struct Instant {
+#if defined(__unix__) || defined(__APPLE__)
+  struct timespec t;
+
+  static Instant now() __NOEXCEPT {
+    struct Instant instant;
+#if defined(__APPLE__)
+    clockid_t clock_id = CLOCK_UPTIME_RAW;
+#else
+    clockid_t clock_id = CLOCK_MONOTONIC;
+#endif
+    clock_gettime(clock_id, &instant.t);
+    return instant;
+  }
+
+  Duration _sub_timespec(const struct timespec &lhs,
+                         const struct timespec &rhs) const __NOEXCEPT {
+    const auto is_larger =
+        lhs.tv_sec > rhs.tv_sec ||
+        (lhs.tv_sec == rhs.tv_sec && lhs.tv_nsec > rhs.tv_nsec);
+    if (is_larger) {
+      uint64_t secs;
+      Nanoseconds nsec;
+      if (lhs.tv_nsec >= rhs.tv_nsec) {
+        secs = lhs.tv_sec - rhs.tv_sec;
+        nsec = lhs.tv_nsec - rhs.tv_nsec;
+      } else {
+        secs = lhs.tv_sec - rhs.tv_sec - 1;
+        nsec = lhs.tv_nsec + NANOS_PER_SEC - rhs.tv_nsec;
+      }
+      return {secs, nsec};
+    } else {
+      return {0, NANOSECONDS_NONE};
+    }
+  }
+
+  Duration checked_sub_instant(const Instant &other) const __NOEXCEPT {
+    return _sub_timespec(this->t, other.t);
+  }
+#endif
+#if defined(_WIN32)
   Duration t;
 
   static Instant now() __NOEXCEPT {
@@ -129,14 +208,36 @@ struct Instant {
   }
 
   static Instant from(const _PerformanceCounterInstant &other) __NOEXCEPT {
-    const uint64_t freq = _rust_time_static.perf_counter_frequency;
+    const uint64_t freq = _PerformanceCounterInstant::frequency();
     const auto instant_nsec =
         _mul_div_u64((uint64_t)other.ts, NANOS_PER_SEC, freq);
     return Instant{Duration::from_nanos(instant_nsec)};
   }
-};
 
+  Duration checked_sub_instant(const Instant &other) const __NOEXCEPT {
+    const auto epsilon = _PerformanceCounterInstant::epsilon();
+    if (other.t > this->t && other.t - this->t < epsilon) {
+      return {0, NANOSECONDS_NONE};
+    } else {
+      return this->t.checked_sub(other.t);
+    }
+  }
 #endif
+
+  Duration operator-(const Instant &rhs) const __NOEXCEPT {
+    return duration_since(rhs);
+  }
+
+  Duration duration_since(const Instant &earlier) const __NOEXCEPT {
+    const auto duration = checked_duration_since(earlier);
+    assert(duration.nanos != NANOSECONDS_NONE);
+    return duration;
+  }
+
+  Duration checked_duration_since(const Instant &earlier) const __NOEXCEPT {
+    return checked_sub_instant(earlier);
+  }
+};
 
 inline void init() __NOEXCEPT {
 #if defined(_WIN32)
