@@ -138,7 +138,7 @@ struct Instant {
 
 #endif
 
-void init() __NOEXCEPT {
+inline void init() __NOEXCEPT {
 #if defined(_WIN32)
   _rust_time_static.perf_counter_frequency = _perf_counter_query_frequency();
 #endif
