@@ -1,0 +1,9 @@
+[package]
+name = "rust-time-test"
+description = "This is a test library. Do not publish it."
+version = "0.1.0"
+edition = "2021"
+rust_version = "1.81.1"
+
+[build-dependencies]
+cc = "1.1.10"
