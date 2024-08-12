@@ -35,6 +35,7 @@ struct Duration {
   Nanoseconds nanos;
 
 #if __cplusplus
+  Duration() = default;
   Duration(uint64_t secs, Nanoseconds nanos) __NOEXCEPT {
     if (nanos < NANOS_PER_SEC) {
       this->secs = secs;
