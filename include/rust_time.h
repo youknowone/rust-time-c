@@ -1,3 +1,5 @@
+#pragma once
+
 #include <stdint.h>
 
 #if __cplusplus >= 201402L
@@ -7,9 +9,11 @@
 #endif
 
 #if defined(__unix__) || defined(__APPLE__)
-#include <time.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <time.h>
+#elif defined(_WIN32)
+#include <Windows.h>
 #endif
 
 #if __cplusplus
@@ -67,6 +71,22 @@ struct Instant {
     return instant;
   }
 };
+
+struct _Static {};
+#endif
+
+#if defined(_WIN32)
+struct _Static {
+  int64_t perf_counter_frequency;
+};
+#endif
+
+#if __cplusplus
+extern "C" {
+#endif
+extern struct _Static _rust_time_static;
+#if __cplusplus
+}
 #endif
 
 #if defined(_WIN32)
@@ -79,15 +99,13 @@ uint64_t _mul_div_u64(uint64_t value, uint64_t numer,
 
 inline int64_t _perf_counter_query_frequency() __NOEXCEPT {
   int64_t frequency;
-  QueryPerformanceFrequency(&frequency);
+  QueryPerformanceFrequency(reinterpret_cast<LARGE_INTEGER *>(&frequency));
   return frequency;
 }
 
-extern int64_t _perf_counter_frequency;
-
 inline int64_t _perf_counter_query() __NOEXCEPT {
   int64_t counter;
-  QueryPerformanceCounter(&counter);
+  QueryPerformanceCounter(reinterpret_cast<LARGE_INTEGER *>(&counter));
   return counter;
 }
 
@@ -96,10 +114,10 @@ struct _PerformanceCounterInstant {
 
   static _PerformanceCounterInstant now() __NOEXCEPT {
     struct _PerformanceCounterInstant instant;
-    QueryPerformanceCounter(&instant.ts);
+    instant.ts = _perf_counter_query();
     return instant;
   }
-}
+};
 
 /// std::time::Instant
 struct Instant {
@@ -111,13 +129,20 @@ struct Instant {
   }
 
   static Instant from(const _PerformanceCounterInstant &other) __NOEXCEPT {
-    const uint64_t freq = _perf_counter_frequency;
+    const uint64_t freq = _rust_time_static.perf_counter_frequency;
     const auto instant_nsec =
         _mul_div_u64((uint64_t)other.ts, NANOS_PER_SEC, freq);
     return Instant{Duration::from_nanos(instant_nsec)};
   }
-}
+};
+
 #endif
+
+void init() __NOEXCEPT {
+#if defined(_WIN32)
+  _rust_time_static.perf_counter_frequency = _perf_counter_query_frequency();
+#endif
+}
 
 #if __cplusplus
 } // namespace time

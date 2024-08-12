@@ -1,5 +1,6 @@
 #[cfg(test)]
 extern "C" {
+    fn rust_time_init();
     fn rust_time_instant_now(instant: *mut u8);
 }
 
@@ -10,6 +11,9 @@ mod tests {
 
     #[test]
     fn now() {
+        unsafe {
+            rust_time_init();
+        }
         let t1 = Instant::now();
         let t2 = unsafe {
             let mut uninit = std::mem::MaybeUninit::<Instant>::uninit();
