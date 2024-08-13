@@ -1,0 +1,36 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc ab8ef9f8f075ca90430b5a6cb040e15285bdbb30c240ead2673f7c0627e67bca # shrinks to mut t1 = Instant { tv_sec: 606902, tv_nsec: 17518375 }, mut t2 = Instant { tv_sec: 606902, tv_nsec: 17518375 }
+cc 4fae0e6ceb5d40a79883ea3423b4af2c71a0b50040f15560e3d228cce4ea8fa5 # shrinks to mut t1 = Instant { tv_sec: 606979, tv_nsec: 674924333 }, mut t2 = Instant { tv_sec: 606979, tv_nsec: 674924375 }
+cc a26b8a8dde0f1702a6377744c9df7e0d24024ac952e31364ba705ef008d5f3d5 # shrinks to mut t1 = Instant { tv_sec: 607083, tv_nsec: 629002375 }, mut t2 = Instant { tv_sec: 607083, tv_nsec: 629002375 }
+cc 629a2e4545d9ecf89fbe7072c9ee143ecd9da81ca5558727f0e0f7e24afc4e7e # shrinks to mut t1 = Instant { tv_sec: 609890, tv_nsec: 321489166 }, mut t2 = Instant { tv_sec: 609890, tv_nsec: 321489166 }
+cc 17cd04a5184cb416d087f39807e362794c72ee670a223aaa1b6ec33060409a09 # shrinks to mut t1 = Instant { tv_sec: 610090, tv_nsec: 566956083 }, mut t2 = Instant { tv_sec: 610090, tv_nsec: 566956166 }
+cc 9e6a1d13deb0d6ea4050cc81c5810f122d32641587266f662d837e5ee09922de # shrinks to mut t1 = Instant { tv_sec: 610100, tv_nsec: 255499166 }, mut t2 = Instant { tv_sec: 610100, tv_nsec: 255499166 }
+cc c3794b34be55d8064e8d894db884e5d3c986903ea46030fce2ab3cfbf74482ed # shrinks to mut t1 = Instant { tv_sec: 610753, tv_nsec: 338860666 }, mut t2 = Instant { tv_sec: 610753, tv_nsec: 338860708 }
+cc 4027d3634cffaa295e82579d2010fada3f3d506d710d9714f2b8a0ae6b058895 # shrinks to mut t1 = Instant { tv_sec: 610902, tv_nsec: 481194625 }, mut t2 = Instant { tv_sec: 610902, tv_nsec: 481194708 }
+cc 07fbd4e1a0b7d1f3c413fe67ee9ee6be4d870f54e1d61d65f9049ae1a66ca95f # shrinks to mut t1 = Instant { tv_sec: 610992, tv_nsec: 12802916 }, mut t2 = Instant { tv_sec: 610992, tv_nsec: 12802958 }
+cc d21565762b8fac6d497b4cde709fef42010c3a38d13f017b5a2450c6a3ac5ade # shrinks to mut t1 = Instant { tv_sec: 611000, tv_nsec: 415525333 }, mut t2 = Instant { tv_sec: 611000, tv_nsec: 415525375 }
+cc 5b053c6b8c6e9d73a393172cad69d4f45ccf6df37139d5ad605c7daf06304225 # shrinks to mut t1 = Instant { tv_sec: 611026, tv_nsec: 962898000 }, mut t2 = Instant { tv_sec: 611026, tv_nsec: 962898041 }
+cc 1060de85fb01b10e52697ea0f03f13eceb0340515b592deadfda8a37dd5e6227 # shrinks to mut t1 = Instant { tv_sec: 611088, tv_nsec: 257007375 }, mut t2 = Instant { tv_sec: 611088, tv_nsec: 257007416 }
+cc 2f840640ee26bee4bc3297d49b92e23d0c38083d94273ba9e87693a790f12773 # shrinks to mut t1 = Instant { tv_sec: 611384, tv_nsec: 142149333 }, mut t2 = Instant { tv_sec: 611384, tv_nsec: 142149375 }
+cc 7061015b8a1601be3a5d2a52deb8fc74e33618947d886affc5a4ff162d18ba06 # shrinks to mut t1 = Instant { tv_sec: 611427, tv_nsec: 944102125 }, mut t2 = Instant { tv_sec: 611427, tv_nsec: 944102166 }
+cc 68400d698fef610c22cfe77c0fe5aff9b81c9a395c39407ef3151965df75da7c # shrinks to mut t1 = Instant { tv_sec: 611665, tv_nsec: 771083708 }, mut t2 = Instant { tv_sec: 611665, tv_nsec: 771083750 }
+cc d871733af97bbe219dde0969738f0f921da00a0feada624bc78921a5ec3215a9 # shrinks to mut t1 = Instant { tv_sec: 96468, tv_nsec: 134956291 }, mut t2 = Instant { tv_sec: 96468, tv_nsec: 134956333 }
+cc b0421d5befaca90fbaf02417fe5a00ecd00b15a0754972b92a64a38273059882 # shrinks to mut t1 = Instant { tv_sec: 96497, tv_nsec: 649489208 }, mut t2 = Instant { tv_sec: 96497, tv_nsec: 649489208 }
+cc 2826029f55630b0846e3e810128032fd9d291625f501b6e7de489cbdd7b4a959 # shrinks to mut t1 = Instant { tv_sec: 98161, tv_nsec: 179706791 }, mut t2 = Instant { tv_sec: 98161, tv_nsec: 179706833 }
+cc 060e48d7459b26dcf75638d7a6d051d1843f0d21f8f3a0accabe6bb086300901 # shrinks to mut t1 = Instant { tv_sec: 98165, tv_nsec: 601865166 }, mut t2 = Instant { tv_sec: 98165, tv_nsec: 601865166 }
+cc e58e55d39272a354d7a693c5f18339873546f10409468c3bf52d17bf15bd4ab4 # shrinks to mut t1 = Instant { tv_sec: 98489, tv_nsec: 180845583 }, mut t2 = Instant { tv_sec: 98489, tv_nsec: 180845625 }
+cc d7577b8f2025f39d35fe017b39c6548d4d83ffd50aa9cb85a77b15232eeda509 # shrinks to mut t1 = Instant { tv_sec: 98545, tv_nsec: 42623791 }, mut t2 = Instant { tv_sec: 98545, tv_nsec: 42623833 }
+cc 9edeffc8ee03623a230e11ef3b424a2b0ce3d2adeb8e3d5d7d7c515af7e9f8fb # shrinks to mut t1 = Instant { tv_sec: 98550, tv_nsec: 728562958 }, mut t2 = Instant { tv_sec: 98550, tv_nsec: 728563000 }
+cc 3806f09ab5a4805af462fc2bad0e2aa770789ea545e8eba093d1d11ec6cc6c45 # shrinks to mut t1 = Instant { tv_sec: 98688, tv_nsec: 739309250 }, mut t2 = Instant { tv_sec: 98688, tv_nsec: 739309250 }
+cc 90bd4dce947ace486421e735f3117b41228f1a99c33f7473e54f2f91e15e9a69 # shrinks to mut t1 = Instant { tv_sec: 99423, tv_nsec: 104505250 }, mut t2 = Instant { tv_sec: 99423, tv_nsec: 104505291 }
+cc 3c1c480ab48b36b1ccf7b73efea7344f716cb4173d5b46a822c9ac759edd9f19 # shrinks to mut t1 = Instant { tv_sec: 99434, tv_nsec: 802204541 }, mut t2 = Instant { tv_sec: 99434, tv_nsec: 802204583 }
+cc aba0b11a36ed9fa4d898364c992c66edfd7dbf24a2983f7bcdfab07bf01fa8da # shrinks to mut t1 = Instant { tv_sec: 99562, tv_nsec: 498295083 }, mut t2 = Instant { tv_sec: 99562, tv_nsec: 498295125 }
+cc 9a483f6efdd2517a553f5adf12fcde4b736c0b87b0c2677eef3d0c678ab34708 # shrinks to mut t1 = Instant { tv_sec: 99615, tv_nsec: 436655541 }, mut t2 = Instant { tv_sec: 99615, tv_nsec: 436655583 }
+cc db74f4f4cee66baed64b5c8ac782416bde008e7c033c89440d25d9b8108e129d # shrinks to mut t1 = Instant { tv_sec: 99651, tv_nsec: 952843041 }, mut t2 = Instant { tv_sec: 99651, tv_nsec: 952843041 }
+cc 6e08aa33824f21fee5132ed3c3b8cf261b8a2e56529aa8da98688c498d7112ac # shrinks to mut t1 = Instant { tv_sec: 99688, tv_nsec: 969029125 }, mut t2 = Instant { tv_sec: 99688, tv_nsec: 969029166 }
+cc 17b9b9cc2e56ffd90c2bdbcbe84ce9ad6c03f40871947da3fa2f92ace4bd50eb # shrinks to mut t1 = Instant { tv_sec: 99721, tv_nsec: 441809958 }, mut t2 = Instant { tv_sec: 99721, tv_nsec: 441810000 }

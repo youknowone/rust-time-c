@@ -1,5 +1,6 @@
 fn main() {
     println!("cargo:rerun-if-changed=../include/rust_time.h");
+    println!("cargo:rerun-if-changed=../include/rust_time.cxx");
     cc::Build::new()
         .cpp(true)
         .std("c++17")
