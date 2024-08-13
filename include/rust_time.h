@@ -35,7 +35,8 @@ struct Duration {
   Nanoseconds nanos;
 
 #if __cplusplus
-  static __CONSTEXPR Duration from_parts(uint64_t secs, Nanoseconds nanos) __NOEXCEPT {
+  static __CONSTEXPR Duration from_parts(uint64_t secs,
+                                         Nanoseconds nanos) __NOEXCEPT {
     if (nanos < NANOS_PER_SEC) {
       return {secs, nanos};
     } else {
@@ -74,7 +75,8 @@ struct Duration {
   }
   Duration operator-(const Duration &rhs) const __NOEXCEPT {
     const auto duration = checked_sub(rhs);
-    assert(duration.nanos != NANOSECONDS_NONE); // "overflow when subtracting durations"
+    assert(duration.nanos !=
+           NANOSECONDS_NONE); // "overflow when subtracting durations"
     return duration;
   }
   __CONSTEXPR bool operator==(const Duration &rhs) const __NOEXCEPT {
@@ -89,7 +91,7 @@ struct Duration {
   }
   __CONSTEXPR bool operator<=(const Duration &rhs) const __NOEXCEPT {
     return this->secs < rhs.secs ||
-        (this->secs == rhs.secs && this->nanos <= rhs.nanos);
+           (this->secs == rhs.secs && this->nanos <= rhs.nanos);
   }
   __CONSTEXPR bool operator>(const Duration &rhs) const __NOEXCEPT {
     return !(*this <= rhs);
@@ -127,7 +129,7 @@ extern struct _Static _rust_time_static;
 
 #if defined(_WIN32)
 inline uint64_t _mul_div_u64(uint64_t value, uint64_t numer,
-                      uint64_t denom) __NOEXCEPT {
+                             uint64_t denom) __NOEXCEPT {
   const auto q = value / denom;
   const auto r = value % denom;
   return q * numer + r * numer / denom;
@@ -179,12 +181,11 @@ struct Instant {
     return instant;
   }
 
-  Duration _sub_timespec(const struct timespec &lhs,
-                         const struct timespec &rhs) const __NOEXCEPT {
-    const auto is_larger =
-        lhs.tv_sec > rhs.tv_sec ||
-        (lhs.tv_sec == rhs.tv_sec && lhs.tv_nsec >= rhs.tv_nsec);
-    if (is_larger) {
+  static Duration _sub_timespec(const struct timespec &lhs,
+                                const struct timespec &rhs) __NOEXCEPT {
+    const auto is_gte = lhs.tv_sec > rhs.tv_sec || (lhs.tv_sec == rhs.tv_sec &&
+                                                    lhs.tv_nsec >= rhs.tv_nsec);
+    if (is_gte) {
       uint64_t secs;
       Nanoseconds nsec;
       if (lhs.tv_nsec >= rhs.tv_nsec) {
