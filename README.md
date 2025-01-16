@@ -6,7 +6,7 @@ Rust std::time::Instant in C++
 ## No guarantee
 No guarantee for compatibility.
 
-Since `std::time::Instant` and `std::time::Duration` is not `#[repr(C)]`, use it on your own risk.
+Since `std::time::Instant` and `std::time::Duration` is not `#[repr(C)]`, use it on your own risk. Data without `#[repr(C)]` is unbelievably fragile on FFI boundary.
 
 ## See also
 - https://github.com/youknowone/rust-ffi_types
