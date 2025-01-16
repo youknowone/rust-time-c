@@ -59,6 +59,10 @@ struct Duration {
       return {secs + nanos / NANOS_PER_SEC, nanos % NANOS_PER_SEC};
     }
   }
+
+  static __CONSTEXPR Duration from_secs(uint64_t secs) __NOEXCEPT {
+    return Duration::from_parts(secs, 0);
+  }
   static __CONSTEXPR Duration from_nanos(uint64_t nanos) __NOEXCEPT {
     const uint64_t NANOS_PER_SEC64 = NANOS_PER_SEC;
     const auto secs = nanos / NANOS_PER_SEC64;
@@ -128,6 +132,9 @@ struct Duration {
     return !(*this < rhs);
   }
 #if defined(__unix__) || defined(__APPLE__)
+  struct timespec& as_timespec() __NOEXCEPT {
+    return *reinterpret_cast<struct timespec *>(this);
+  }
   Duration& operator=(const struct timespec &other) __NOEXCEPT {
     this->secs = other.tv_sec;
     this->nanos = other.tv_nsec;
@@ -221,7 +228,7 @@ struct Instant {
     return instant;
   }
 
-  Duration checked_sub_instant(const Instant &other) const __NOEXCEPT {
+  Duration checked_duration_since(const Instant &other) const __NOEXCEPT {
     return this->t.checked_sub(other.t);
   }
 #endif
@@ -238,7 +245,7 @@ struct Instant {
     return Instant{Duration::from_nanos(instant_nsec)};
   }
 
-  Duration checked_sub_instant(const Instant &other) const __NOEXCEPT {
+  Duration checked_duration_since(const Instant &other) const __NOEXCEPT {
     const auto epsilon = _PerformanceCounterInstant::epsilon();
     if (other.t > this->t && other.t - this->t < epsilon) {
       return {0, 0};
@@ -252,6 +259,13 @@ struct Instant {
     return duration_since(rhs);
   }
 
+  Duration saturating_duration_since(const Instant &earlier) const __NOEXCEPT {
+    const auto duration = checked_duration_since(earlier);
+    if (duration.nanos == NANOSECONDS_NONE) {
+      return {0, 0};
+    }
+    return duration;
+  }
   Duration duration_since(const Instant &earlier) const __NOEXCEPT {
     assert(this->t.nanos < 1000000000);
     assert(earlier.t.nanos < 1000000000);
@@ -260,8 +274,21 @@ struct Instant {
     return duration;
   }
 
-  Duration checked_duration_since(const Instant &earlier) const __NOEXCEPT {
-    return checked_sub_instant(earlier);
+  // FIXME: implementing checked_add in C++ is not trivial
+  Instant wrapping_add(const Duration &other) const __NOEXCEPT {
+    const auto nanos = this->t.nanos + other.nanos;
+    if (nanos > NANOS_PER_SEC) {
+      return {{t.secs + other.secs, nanos}};
+    } else {
+      return {{t.secs + other.secs + 1, nanos - NANOS_PER_SEC}};
+    }
+  }
+  Instant operator+(const Duration &other) const __NOEXCEPT {
+    return wrapping_add(other);
+  }
+  Instant& operator+=(const Duration &other) __NOEXCEPT {
+    *this = *this + other;
+    return *this;
   }
 };
 static_assert(sizeof(Instant) == sizeof(uint64_t) * 2, "Instant size");
