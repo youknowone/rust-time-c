@@ -290,6 +290,25 @@ struct Instant {
     *this = *this + other;
     return *this;
   }
+
+  __CONSTEXPR bool operator==(const Instant &rhs) const __NOEXCEPT {
+    return this->t == rhs.t;
+  }
+  __CONSTEXPR bool operator!=(const Instant &rhs) const __NOEXCEPT {
+    return !(*this == rhs);
+  }
+  __CONSTEXPR bool operator<(const Instant &rhs) const __NOEXCEPT {
+    return this->t < rhs.t;
+  }
+  __CONSTEXPR bool operator<=(const Instant &rhs) const __NOEXCEPT {
+    return this->t <= rhs.t;
+  }
+  __CONSTEXPR bool operator>(const Instant &rhs) const __NOEXCEPT {
+    return this->t > rhs.t;
+  }
+  __CONSTEXPR bool operator>=(const Instant &rhs) const __NOEXCEPT {
+    return this->t >= rhs.t;
+  }
 };
 static_assert(sizeof(Instant) == sizeof(uint64_t) * 2, "Instant size");
 
