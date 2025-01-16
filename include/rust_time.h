@@ -65,6 +65,12 @@ struct Duration {
     const auto subsec_nanos = (Nanoseconds)(nanos % NANOS_PER_SEC64);
     return Duration::from_parts(secs, subsec_nanos);
   }
+  uint64_t __CONSTEXPR as_secs() const __NOEXCEPT {
+    return secs;
+  }
+  Nanoseconds __CONSTEXPR subsec_nanos() const __NOEXCEPT {
+    return nanos;
+  }
   uint64_t __CONSTEXPR as_nanos64() const __NOEXCEPT {
     __CONSTEXPR Duration MAXIMUM_DURATION = Duration::from_nanos(UINT64_MAX);
     if (*this >= MAXIMUM_DURATION) {
