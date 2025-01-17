@@ -18,4 +18,4 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Run tests
-      run: cargo test --manifest-path tests/Cargo.toml --verbose
+      run: cargo test --manifest-path ctests/Cargo.toml --verbose

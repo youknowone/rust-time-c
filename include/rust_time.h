@@ -33,13 +33,13 @@ __CONSTEXPR Nanoseconds NANOSECONDS_NONE = uint32_t(-1);
 
 /// std::time::Duration
 struct Duration {
-  uint64_t secs;
+  int64_t secs;
   Nanoseconds nanos;
   uint32_t _padding;
 
 #if __cplusplus
   Duration() = default;
-  __CONSTRUCT_CONSTEXPR Duration(uint64_t secs, Nanoseconds nanos) __NOEXCEPT
+  __CONSTRUCT_CONSTEXPR Duration(int64_t secs, Nanoseconds nanos) __NOEXCEPT
       : secs(secs), nanos(nanos), _padding(0) {}
   Duration(const Duration& other) __NOEXCEPT {
     this->secs = other.secs;
@@ -51,7 +51,7 @@ struct Duration {
     this->nanos = other.nanos;
     // ignore padding
   }
-  static __CONSTEXPR Duration from_parts(uint64_t secs,
+  static __CONSTEXPR Duration from_parts(int64_t secs,
                                          Nanoseconds nanos) __NOEXCEPT {
     if (nanos < NANOS_PER_SEC) {
       return {secs, nanos};
@@ -275,7 +275,7 @@ struct Instant {
   }
 
   // FIXME: implementing checked_add in C++ is not trivial
-  Instant wrapping_add(const Duration &other) const __NOEXCEPT {
+  __CONSTEXPR Instant wrapping_add(const Duration &other) const __NOEXCEPT {
     const auto nanos = this->t.nanos + other.nanos;
     if (nanos > NANOS_PER_SEC) {
       return {{t.secs + other.secs, nanos}};
@@ -283,12 +283,31 @@ struct Instant {
       return {{t.secs + other.secs + 1, nanos - NANOS_PER_SEC}};
     }
   }
-  Instant operator+(const Duration &other) const __NOEXCEPT {
+  __CONSTEXPR Instant operator+(const Duration &other) const __NOEXCEPT {
     return wrapping_add(other);
   }
-  Instant& operator+=(const Duration &other) __NOEXCEPT {
+  __CONSTEXPR Instant& operator+=(const Duration &other) __NOEXCEPT {
     *this = *this + other;
     return *this;
+  }
+
+  __CONSTEXPR bool operator==(const Instant &rhs) const __NOEXCEPT {
+    return this->t == rhs.t;
+  }
+  __CONSTEXPR bool operator!=(const Instant &rhs) const __NOEXCEPT {
+    return !(*this == rhs);
+  }
+  __CONSTEXPR bool operator<(const Instant &rhs) const __NOEXCEPT {
+    return this->t < rhs.t;
+  }
+  __CONSTEXPR bool operator<=(const Instant &rhs) const __NOEXCEPT {
+    return this->t <= rhs.t;
+  }
+  __CONSTEXPR bool operator>(const Instant &rhs) const __NOEXCEPT {
+    return this->t > rhs.t;
+  }
+  __CONSTEXPR bool operator>=(const Instant &rhs) const __NOEXCEPT {
+    return this->t >= rhs.t;
   }
 };
 static_assert(sizeof(Instant) == sizeof(uint64_t) * 2, "Instant size");
