@@ -3,6 +3,8 @@ name = "ffi_time"
 version = "0.1.1"
 edition = "2021"
 description = "FFI assistant for Rust time types"
+license = "BSD-2-Clause"
+repository = "https://github.com/youknowone/rust-time-c"
 
 [dependencies]
 libc = "0.2.169"
