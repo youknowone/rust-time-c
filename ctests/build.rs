@@ -1,10 +1,10 @@
 fn main() {
     println!("cargo:rerun-if-changed=../include/rust_time.h");
-    println!("cargo:rerun-if-changed=../include/rust_time.cxx");
+    println!("cargo:rerun-if-changed=test.cxx");
     cc::Build::new()
         .cpp(true)
         .std("c++17")
         .include("../include")
         .file("test.cxx")
-        .compile("rust_time");
+        .compile("rust_time_test");
 }
