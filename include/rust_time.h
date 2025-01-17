@@ -286,7 +286,7 @@ struct Instant {
   __CONSTEXPR Instant operator+(const Duration &other) const __NOEXCEPT {
     return wrapping_add(other);
   }
-  __CONSTEXPR Instant& operator+=(const Duration &other) __NOEXCEPT {
+  Instant& operator+=(const Duration &other) __NOEXCEPT {
     *this = *this + other;
     return *this;
   }

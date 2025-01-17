@@ -13,6 +13,7 @@
 ///
 /// Note: This is a platform-dependent implementation. Major platforms are compatible.
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub union Duration {
     duration: std::time::Duration,
     payload: CDuration,
@@ -61,6 +62,7 @@ impl From<CDuration> for Duration {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub union Instant {
     instant: std::time::Instant,
     payload: CDuration,
@@ -93,6 +95,18 @@ impl Instant {
     #[cfg(test)]
     pub fn as_c_mut_ptr(&mut self) -> *mut libc::c_void {
         unsafe { &raw mut self.payload as *mut _ }
+    }
+}
+
+impl From<std::time::Instant> for Instant {
+    fn from(instant: std::time::Instant) -> Self {
+        Self::from_instant(instant)
+    }
+}
+
+impl From<CDuration> for Instant {
+    fn from(payload: CDuration) -> Self {
+        Self { payload }
     }
 }
 
