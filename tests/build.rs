@@ -5,6 +5,6 @@ fn main() {
         .cpp(true)
         .std("c++17")
         .include("../include")
-        .file("../src/rust_time.cxx")
+        .file("test.cxx")
         .compile("rust_time");
 }
