@@ -275,7 +275,7 @@ struct Instant {
   }
 
   // FIXME: implementing checked_add in C++ is not trivial
-  Instant wrapping_add(const Duration &other) const __NOEXCEPT {
+  __CONSTEXPR Instant wrapping_add(const Duration &other) const __NOEXCEPT {
     const auto nanos = this->t.nanos + other.nanos;
     if (nanos > NANOS_PER_SEC) {
       return {{t.secs + other.secs, nanos}};
@@ -283,10 +283,10 @@ struct Instant {
       return {{t.secs + other.secs + 1, nanos - NANOS_PER_SEC}};
     }
   }
-  Instant operator+(const Duration &other) const __NOEXCEPT {
+  __CONSTEXPR Instant operator+(const Duration &other) const __NOEXCEPT {
     return wrapping_add(other);
   }
-  Instant& operator+=(const Duration &other) __NOEXCEPT {
+  __CONSTEXPR Instant& operator+=(const Duration &other) __NOEXCEPT {
     *this = *this + other;
     return *this;
   }
