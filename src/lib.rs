@@ -11,6 +11,8 @@
 
 /// FFI-available `Duration` corresponding to `std::time::Duration`.
 ///
+/// In `rust_time.h`, `rust::time::Duration` matches this type.
+///
 /// Note: This is a platform-dependent implementation. Major platforms are compatible.
 #[repr(C)]
 #[derive(Clone, Copy)]
@@ -61,6 +63,11 @@ impl From<CDuration> for Duration {
     }
 }
 
+/// FFI-available `Instant` corresponding to `std::time::Instant`.
+///
+/// In `rust_time.h`, `rust::time::Instant` matches this type.
+///
+/// Note: This is a platform-dependent implementation. Major platforms are compatible.
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub union Instant {
