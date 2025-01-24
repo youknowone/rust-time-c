@@ -110,7 +110,7 @@ struct Duration {
         }
     }
     // FIXME: implement checked add
-    Duration operator+(const Duration& rhs) const __NOEXCEPT {
+    __CONSTEXPR Duration operator+(const Duration& rhs) const __NOEXCEPT {
         return wrapping_add(rhs);
     }
     Duration operator-(const Duration& rhs) const __NOEXCEPT;
