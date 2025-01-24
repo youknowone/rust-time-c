@@ -32,12 +32,26 @@ impl Duration {
             uninit.assume_init()
         }
     }
+    pub fn into_duration(self) -> std::option::Option<std::time::Duration> {
+        if unsafe { self.payload }.is_valid() {
+            Some(unsafe { self.duration })
+        } else {
+            None
+        }
+    }
+    pub fn as_duration(&self) -> std::option::Option<&std::time::Duration> {
+        if unsafe { self.payload }.is_valid() {
+            Some(unsafe { &self.duration })
+        } else {
+            None
+        }
+    }
     /// # Safety: The payload representation must match a valid `std::time::Duration`.
-    pub unsafe fn into_duration(self) -> std::time::Duration {
+    pub unsafe fn into_duration_unchecked(self) -> std::time::Duration {
         self.duration
     }
     /// # Safety: The payload representation must match a valid `std::time::Duration`.
-    pub unsafe fn as_duration(&self) -> &std::time::Duration {
+    pub unsafe fn as_duration_unchecked(&self) -> &std::time::Duration {
         &self.duration
     }
 
@@ -86,12 +100,26 @@ impl Instant {
             uninit.assume_init()
         }
     }
+    pub fn into_instant(self) -> std::option::Option<std::time::Instant> {
+        if unsafe { self.payload }.is_valid() {
+            Some(unsafe { self.instant })
+        } else {
+            None
+        }
+    }
+    pub fn as_instant(&self) -> std::option::Option<&std::time::Instant> {
+        if unsafe { self.payload }.is_valid() {
+            Some(unsafe { &self.instant })
+        } else {
+            None
+        }
+    }
     /// # Safety: The payload representation must match a valid `std::time::Instant`.
-    pub unsafe fn into_instant(self) -> std::time::Instant {
+    pub unsafe fn into_instant_unchecked(self) -> std::time::Instant {
         self.instant
     }
     /// # Safety: The payload representation must match a valid `std::time::Instant`.
-    pub unsafe fn as_instant(&self) -> &std::time::Instant {
+    pub unsafe fn as_instant_unchecked(&self) -> &std::time::Instant {
         &self.instant
     }
 
@@ -131,6 +159,9 @@ pub struct CDuration {
 
 impl CDuration {
     const NONE_NANOS: u32 = (-1i32) as u32;
+    fn is_valid(&self) -> bool {
+        self.nanos < 1_000_000_000
+    }
     fn is_none(&self) -> bool {
         self.nanos == Self::NONE_NANOS
     }
@@ -160,5 +191,25 @@ impl<T: From<CDuration>> Option<T> {
     }
     pub fn is_some(&self) -> bool {
         !self.is_none()
+    }
+}
+
+impl Option<Duration> {
+    pub fn into_duration(self) -> std::option::Option<std::time::Duration> {
+        if self.0.is_valid() {
+            Some(Duration { payload: self.0 }.into_duration().unwrap())
+        } else {
+            None
+        }
+    }
+}
+
+impl Option<Instant> {
+    pub fn into_instant(self) -> std::option::Option<std::time::Instant> {
+        if self.0.is_valid() {
+            Some(Instant { payload: self.0 }.into_instant().unwrap())
+        } else {
+            None
+        }
     }
 }

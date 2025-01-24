@@ -35,6 +35,9 @@ struct OptionalDuration;
 
 /// std::time::Duration
 struct Duration {
+    // leading bit incompatibility here. Rust `Duration` uses u64 for secs.
+    // But int64_t here for timespec compatibility and simpler multi platform
+    // support.
     int64_t secs;
     Nanoseconds nanos;
     uint32_t _padding;
@@ -54,6 +57,9 @@ struct Duration {
         this->secs = other.secs;
         this->nanos = other.nanos;
         // ignore padding
+    }
+    static __CONSTEXPR Duration ZERO() __NOEXCEPT {
+        return {0, 0};
     }
     static __CONSTEXPR Duration from_parts(int64_t secs, Nanoseconds nanos)
             __NOEXCEPT {
@@ -94,6 +100,19 @@ struct Duration {
         // ignore padding
         return *this;
     }
+    // implementing checked_add in C++ is not trivial
+    __CONSTEXPR Duration wrapping_add(const Duration& other) const __NOEXCEPT {
+        const auto nanos = this->nanos + other.nanos;
+        if (nanos < NANOS_PER_SEC) {
+            return {secs + other.secs, nanos};
+        } else {
+            return {secs + other.secs + 1, nanos - NANOS_PER_SEC};
+        }
+    }
+    // FIXME: implement checked add
+    Duration operator+(const Duration& rhs) const __NOEXCEPT {
+        return wrapping_add(rhs);
+    }
     Duration operator-(const Duration& rhs) const __NOEXCEPT;
     __CONSTEXPR bool operator==(const Duration& rhs) const __NOEXCEPT {
         return this->secs == rhs.secs && this->nanos == rhs.nanos;
@@ -114,6 +133,9 @@ struct Duration {
     }
     __CONSTEXPR bool operator>=(const Duration& rhs) const __NOEXCEPT {
         return !(*this < rhs);
+    }
+    __CONSTEXPR bool is_zero() const __NOEXCEPT {
+        return secs == 0 && nanos == 0;
     }
 #if defined(__unix__) || defined(__APPLE__)
     struct timespec& as_timespec() __NOEXCEPT {
@@ -278,7 +300,8 @@ struct Instant {
         return Instant{Duration::from_nanos(instant_nsec)};
     }
 
-    OptionalDuration checked_duration_since(const Instant& other) const __NOEXCEPT {
+    OptionalDuration checked_duration_since(const Instant& other) const
+            __NOEXCEPT {
         const auto epsilon = _PerformanceCounterInstant::epsilon();
         if (other.t > this->t && other.t - this->t < epsilon) {
             return {{0, 0}};
@@ -307,17 +330,12 @@ struct Instant {
         return duration.expect();
     }
 
-    // FIXME: implementing checked_add in C++ is not trivial
-    __CONSTEXPR Instant wrapping_add(const Duration& other) const __NOEXCEPT {
-        const auto nanos = this->t.nanos + other.nanos;
-        if (nanos < NANOS_PER_SEC) {
-            return {{t.secs + other.secs, nanos}};
-        } else {
-            return {{t.secs + other.secs + 1, nanos - NANOS_PER_SEC}};
-        }
+    Duration elapsed() const __NOEXCEPT {
+        return Instant::now().saturating_duration_since(*this);
     }
+
     __CONSTEXPR Instant operator+(const Duration& other) const __NOEXCEPT {
-        return wrapping_add(other);
+        return {t + other};
     }
     Instant& operator+=(const Duration& other) __NOEXCEPT {
         *this = *this + other;
