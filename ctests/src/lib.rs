@@ -120,6 +120,46 @@ fn duration_since() {
     assert_eq!(diff, d);
 }
 
+#[test]
+fn format_debug_instant() {
+    unsafe {
+        rust_time_init();
+    }
+    let t = std::time::Instant::now();
+    let u = ffi_time::Instant::from_instant(t);
+    let s = format!("{:?}", u);
+    assert_eq!(s, format!("{:?}", t));
+}
+
+#[test]
+fn format_debug_duration() {
+    unsafe {
+        rust_time_init();
+    }
+    let d = std::time::Duration::new(1, 250000);
+    let u = ffi_time::Duration::from_duration(d);
+    let s = format!("{:?}", u);
+    assert_eq!(s, format!("{:?}", d));
+}
+
+#[test]
+fn compare_instant() {
+    unsafe {
+        rust_time_init();
+    }
+    let t1 = std::time::Instant::now();
+    let t2 = t1 + std::time::Duration::new(1, 250000);
+    let u1 = ffi_time::Instant::from_instant(t1);
+    // u1.validate();
+    let u2 = ffi_time::Instant::from_instant(t2);
+    // u2.validate();
+
+    assert!(u1 == u1);
+    assert!(u1 != u2);
+    assert!(u1 <= u2);
+    assert!(u1 < u2);
+}
+
 #[cfg(test)]
 proptest::proptest! {
     #[test]

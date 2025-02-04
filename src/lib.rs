@@ -23,6 +23,31 @@ pub union Duration {
 static_assertions::assert_eq_size!(Duration, std::time::Duration);
 static_assertions::assert_eq_size!(Duration, CDuration);
 
+impl std::fmt::Debug for Duration {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if unsafe { self.payload }.is_valid() {
+            write!(f, "{:?}", unsafe { self.duration })
+        } else {
+            write!(f, "Duration({:?})", unsafe { self.payload })
+        }
+    }
+}
+
+impl PartialEq for Duration {
+    fn eq(&self, other: &Self) -> bool {
+        unsafe { self.payload.eq(&other.payload) }
+    }
+}
+
+impl PartialOrd for Duration {
+    fn partial_cmp(&self, other: &Self) -> std::option::Option<std::cmp::Ordering> {
+        if unsafe { !self.payload.is_valid() || !other.payload.is_valid() } {
+            return None;
+        }
+        unsafe { self.duration.partial_cmp(&other.duration) }
+    }
+}
+
 impl Duration {
     // Create from a Rust `std::time::Duration` object.
     pub fn from_duration(duration: std::time::Duration) -> Self {
@@ -91,6 +116,31 @@ pub union Instant {
 static_assertions::assert_eq_size!(Instant, std::time::Instant);
 static_assertions::assert_eq_size!(Instant, CDuration);
 
+impl std::fmt::Debug for Instant {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if unsafe { self.payload }.is_valid() {
+            write!(f, "{:?}", unsafe { self.instant })
+        } else {
+            write!(f, "Instant({:?})", unsafe { self.payload })
+        }
+    }
+}
+
+impl PartialEq for Instant {
+    fn eq(&self, other: &Self) -> bool {
+        unsafe { self.payload.eq(&other.payload) }
+    }
+}
+
+impl PartialOrd for Instant {
+    fn partial_cmp(&self, other: &Self) -> std::option::Option<std::cmp::Ordering> {
+        if unsafe { !self.payload.is_valid() || !other.payload.is_valid() } {
+            return None;
+        }
+        unsafe { self.instant.partial_cmp(&other.instant) }
+    }
+}
+
 impl Instant {
     // Create from a Rust `std::time::Instant` object.
     pub fn from_instant(instant: std::time::Instant) -> Self {
@@ -148,9 +198,9 @@ impl From<CDuration> for Instant {
 /// The internal representation of `std::time::Duration` and `std::time::Instant`, but C compatible.
 ///
 /// # Warning: No guarantee for safe compatibility.
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy)]
 #[repr(C)]
-pub struct CDuration {
+struct CDuration {
     pub secs: u64,
     pub nanos: u32,
     /// This field must never be accessed. Accessing this field might be UB by creation path.
@@ -167,14 +217,37 @@ impl CDuration {
     }
 }
 
+impl std::fmt::Debug for CDuration {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{{ secs: {}, nanos: {} }}", self.secs, self.nanos)
+    }
+}
+
+impl PartialEq for CDuration {
+    fn eq(&self, other: &Self) -> bool {
+        self.secs == other.secs && self.nanos == other.nanos
+    }
+}
+
 /// `std::option::Option`-like wrapper of Duration and Instant.
 ///
 /// This is only created from FFI functions.
 /// When checked operation is called in C++ side and directly passed to Rust,
 /// it must be typed as `Option<Duration>` or `Option<Instant>` to check none value.
+#[derive(Debug)]
 #[repr(C)]
-pub struct Option<T: From<CDuration>>(CDuration, std::marker::PhantomData<T>);
+pub struct Option<T>(CDuration, std::marker::PhantomData<T>);
 
+impl<T> Option<T> {
+    pub fn is_none(&self) -> bool {
+        self.0.is_none()
+    }
+    pub fn is_some(&self) -> bool {
+        !self.is_none()
+    }
+}
+
+#[allow(private_bounds)]
 impl<T: From<CDuration>> Option<T> {
     pub fn unwrap(self) -> T {
         T::from(self.0)
@@ -186,11 +259,17 @@ impl<T: From<CDuration>> Option<T> {
         }
         T::from(self.0)
     }
-    pub fn is_none(&self) -> bool {
-        self.0.is_none()
-    }
-    pub fn is_some(&self) -> bool {
-        !self.is_none()
+}
+
+impl<T: PartialEq> PartialEq for Option<T> {
+    fn eq(&self, other: &Self) -> bool {
+        let l_is_none = self.is_none();
+        let r_is_none = other.is_none();
+        if l_is_none || r_is_none {
+            l_is_none == r_is_none
+        } else {
+            self.0.eq(&other.0)
+        }
     }
 }
 
