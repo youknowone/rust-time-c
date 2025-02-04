@@ -71,6 +71,13 @@ impl Duration {
             None
         }
     }
+    pub fn as_mut_duration(&mut self) -> std::option::Option<&mut std::time::Duration> {
+        if unsafe { self.payload }.is_valid() {
+            Some(unsafe { &mut self.duration })
+        } else {
+            None
+        }
+    }
     /// # Safety: The payload representation must match a valid `std::time::Duration`.
     pub unsafe fn into_duration_unchecked(self) -> std::time::Duration {
         self.duration
@@ -78,6 +85,11 @@ impl Duration {
     /// # Safety: The payload representation must match a valid `std::time::Duration`.
     pub unsafe fn as_duration_unchecked(&self) -> &std::time::Duration {
         &self.duration
+    }
+
+    /// # Safety: The payload representation must match a valid `std::time::Duration`.
+    pub unsafe fn as_mut_duration_unchecked(&mut self) -> &mut std::time::Duration {
+        &mut self.duration
     }
 
     #[cfg(test)]
@@ -164,6 +176,13 @@ impl Instant {
             None
         }
     }
+    pub fn as_mut_instant(&mut self) -> std::option::Option<&mut std::time::Instant> {
+        if unsafe { self.payload }.is_valid() {
+            Some(unsafe { &mut self.instant })
+        } else {
+            None
+        }
+    }
     /// # Safety: The payload representation must match a valid `std::time::Instant`.
     pub unsafe fn into_instant_unchecked(self) -> std::time::Instant {
         self.instant
@@ -171,6 +190,10 @@ impl Instant {
     /// # Safety: The payload representation must match a valid `std::time::Instant`.
     pub unsafe fn as_instant_unchecked(&self) -> &std::time::Instant {
         &self.instant
+    }
+    /// # Safety: The payload representation must match a valid `std::time::Instant`.
+    pub unsafe fn as_mut_instant_unchecked(&mut self) -> &mut std::time::Instant {
+        &mut self.instant
     }
 
     #[cfg(test)]
