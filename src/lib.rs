@@ -33,6 +33,12 @@ impl std::fmt::Debug for Duration {
     }
 }
 
+impl std::hash::Hash for Duration {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        unsafe { self.duration }.hash(state);
+    }
+}
+
 impl PartialEq for Duration {
     fn eq(&self, other: &Self) -> bool {
         unsafe { self.payload.eq(&other.payload) }
@@ -135,6 +141,12 @@ impl std::fmt::Debug for Instant {
         } else {
             write!(f, "Instant({:?})", unsafe { self.payload })
         }
+    }
+}
+
+impl std::hash::Hash for Instant {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        unsafe { self.instant }.hash(state);
     }
 }
 
